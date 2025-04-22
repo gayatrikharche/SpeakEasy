@@ -11,6 +11,17 @@ export default function VoiceScheduler() {
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const [recording, setRecording] = useState(false);
+  const [view, setView] = useState("month");
+
+  const handleViewChange = (newView) => {
+    setView(newView);
+  };
+
+  const [date, setDate] = useState(new Date());
+
+  const handleNavigate = (newDate) => {
+    setDate(newDate);
+  };
 
   const startRecording = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -95,6 +106,10 @@ export default function VoiceScheduler() {
           endAccessor="end"
           style={{ height: "100%" }}
           views={["month", "week", "day"]}
+          view={view}
+          onView={handleViewChange}
+          date={date}
+          onNavigate={handleNavigate}
           defaultView="month"
           toolbar={true}
         />
