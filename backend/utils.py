@@ -5,6 +5,12 @@ import yaml
 import whisper
 from datetime import datetime, timedelta
 
+def get_config(file_name: str = "config.yaml") -> dict:
+    with open(file_name, "r") as f:
+        config = yaml.safe_load(f)
+        
+    return config
+
 def transcribe_audio(audio_model: whisper.model.Whisper, audio_file: str) -> str:
     assert audio_file.split(".")[-1] == "wav", "Only .wav files are supported"
     

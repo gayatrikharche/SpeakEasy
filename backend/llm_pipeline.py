@@ -1,7 +1,5 @@
 from utils import *
-import re
 import os
-import json
 import whisper
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 from transformers import BitsAndBytesConfig
@@ -11,13 +9,16 @@ from huggingface_hub.hf_api import HfFolder
 import warnings
 warnings.filterwarnings("ignore")
 
+
+config = get_config()
+
 load_dotenv()
 hf_token = os.getenv("HF_TOKEN")
 HfFolder.save_token(hf_token)
 
-audio_model = whisper.load_model("tiny.en")
+audio_model = whisper.load_model(config["audio"]["model_name"])
 
-llm_model_name = "meta-llama/Meta-Llama-3-8B-Instruct"
+llm_model_name = config["llm"]["model_name"]
 
 bnb_config = BitsAndBytesConfig(
     load_in_4bit=True,
@@ -38,6 +39,10 @@ llm_pipeline = pipeline("text-generation", model=llm_model, tokenizer=tokenizer)
 audio_file = "../test/test1.wav"
 transcribed_audio = transcribe_audio(audio_model, audio_file)
 
-response = llm_pipeline(build_prompt(transcribed_audio), max_new_tokens=100, do_sample=False)[0]["generated_text"]
+response = llm_pipeline(
+    build_prompt(transcribed_audio), 
+    max_new_tokens=config["llm"]["max_new_tokens"], 
+    do_sample=False
+)[0]["generated_text"]
 
-save_json_output(response, transcribed_audio)
+save_json_output(response, transcribed_audio, config["output"]["json_file"])
