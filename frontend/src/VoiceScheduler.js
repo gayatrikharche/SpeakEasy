@@ -21,31 +21,36 @@ export default function VoiceScheduler() {
       audioChunksRef.current.push(e.data);
     };
 
-    mediaRecorderRef.current.onstop = () => {
+    mediaRecorderRef.current.onstop = async () => {
       const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-
-      // Simulate backend response for now
-      const data = {
-        person: "Dr. Meera",
-        date: "2025-04-22",
-        time: "14:30",
-        purpose: "appointment",
-        transcript: "Schedule an appointment with Dr. Meera next Tuesday at 2:30 PM",
-      };
-
-      const start = new Date(`${data.date}T${data.time}`);
-      const end = new Date(start.getTime() + 30 * 60 * 1000); // 30 mins
-
-      setEvents((prev) => [
-        ...prev,
-        {
-          title: `${data.purpose} with ${data.person}`,
-          start,
-          end,
-        },
-      ]);
-
-      setTranscript(data.transcript);
+    
+      const formData = new FormData();
+      formData.append("file", audioBlob, "audio.webm");
+    
+      try {
+        const res = await fetch("http://localhost:3000/transcribe", {
+          method: "POST",
+          body: formData,
+        });
+    
+        const data = await res.json();
+    
+        const start = new Date(`${data.date}T${data.time}`);
+        const end = new Date(start.getTime() + 30 * 60 * 1000); // 30 minutes
+    
+        setEvents((prev) => [
+          ...prev,
+          {
+            title: `${data.purpose} with ${data.person}`,
+            start,
+            end,
+          },
+        ]);
+    
+        setTranscript(data.transcript);
+      } catch (err) {
+        console.error("Error uploading audio:", err);
+      }
     };
 
     mediaRecorderRef.current.start();
