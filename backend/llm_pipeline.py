@@ -40,4 +40,4 @@ transcribed_audio = transcribe_audio(audio_model, audio_file)
 
 response = llm_pipeline(build_prompt(transcribed_audio), max_new_tokens=100, do_sample=False)[0]["generated_text"]
 
-save_json_output(response)
+save_json_output(response, transcribed_audio)
