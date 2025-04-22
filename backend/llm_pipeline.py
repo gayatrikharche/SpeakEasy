@@ -44,5 +44,6 @@ response = llm_pipeline(
     max_new_tokens=config["llm"]["max_new_tokens"], 
     do_sample=False
 )[0]["generated_text"]
+print("Received response from LLM")
 
 save_json_output(response, transcribed_audio, config["output"]["json_file"])
