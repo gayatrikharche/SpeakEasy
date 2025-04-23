@@ -20,8 +20,11 @@ def transcribe_audio(audio_model: whisper.model.Whisper, audio_file: str) -> str
     return result["text"]
 
 def build_prompt(user_message: str) -> str:
+    today = datetime.today().strftime("%Y-%m-%d")
+    
     return f"""
         You are an intelligent assistant that extracts appointment details from natural language.
+        Today's date is {today}.
 
         Given the user's message, extract and return a JSON object with the following fields:
         - intent: (schedule, cancel, reschedule)
