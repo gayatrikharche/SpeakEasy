@@ -8,6 +8,7 @@ from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM, BitsAndB
 from dotenv import load_dotenv
 from huggingface_hub.hf_api import HfFolder
 from pyngrok import ngrok
+from collections import defaultdict
 
 load_dotenv()
 hf_token = os.getenv("HF_TOKEN")
@@ -42,6 +43,17 @@ llm_model = AutoModelForCausalLM.from_pretrained(
 
 llm_pipeline = pipeline("text-generation", model=llm_model, tokenizer=tokenizer)
 
+@app.route("/events", methods=["GET"])
+def get_calendar_events():
+    calendar_path = "calendar.json"
+    if not os.path.exists(calendar_path):
+        return jsonify({})
+
+    with open(calendar_path, "r") as f:
+        calendar_data = json.load(f)
+
+    return jsonify(calendar_data)
+
 @app.route("/transcribe", methods=["POST"])
 def transcribe_audio_route():
     file = request.files.get("file")
@@ -67,6 +79,28 @@ def transcribe_audio_route():
 
     updated_output = update_date_from_message(json_output, transcribed_text)
     updated_output["transcript"] = transcribed_text
+
+    calendar_path = "calendar.json"
+    date_key = updated_output["date"]
+
+    if os.path.exists(calendar_path):
+        with open(calendar_path, "r") as f:
+            calendar_data = json.load(f)
+    else:
+        calendar_data = {}
+
+    if date_key not in calendar_data:
+        calendar_data[date_key] = []
+
+    calendar_data[date_key].append({
+        "person": updated_output["person"],
+        "time": updated_output["time"],
+        "purpose": updated_output["purpose"],
+        "transcript": updated_output["transcript"]
+    })
+
+    with open(calendar_path, "w") as f:
+        json.dump(calendar_data, f, indent=2)
 
     return jsonify(updated_output)
 

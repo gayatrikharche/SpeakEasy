@@ -42,23 +42,35 @@ export default function VoiceScheduler() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch("https://cab7-34-142-141-210.ngrok-free.app/events");
+        const res = await fetch("https://7580-34-125-16-213.ngrok-free.app/events");
+        console.log("Loaded events from backend:", res);
         const data = await res.json();
-  
-        console.log("Loaded events from backend:", data);
+        
+        // console.log("Loaded events from backend:", data);
   
         const parsedEvents = [];
   
         for (const [date, items] of Object.entries(data)) {
           for (const item of items) {
-            const start = new Date(`${date}T${item.time}`);
+            const startString = `${date}T${item.time}`;
+            const start = new Date(startString);
             const end = new Date(start.getTime() + 30 * 60 * 1000);
-  
-            parsedEvents.push({
-              title: `${item.purpose} with ${item.person}`,
+        
+            console.log("Parsing event:", {
+              date,
+              time: item.time,
+              startString,
               start,
-              end
+              valid: !isNaN(start.getTime())
             });
+        
+            if (!isNaN(start.getTime())) {
+              parsedEvents.push({
+                title: `${item.purpose} with ${item.person}`,
+                start,
+                end,
+              });
+            }
           }
         }
   
@@ -96,7 +108,7 @@ export default function VoiceScheduler() {
         setLoading(true);
 
         try {
-          const res = await fetch("https://cab7-34-142-141-210.ngrok-free.app/transcribe", {
+          const res = await fetch("https://7580-34-125-16-213.ngrok-free.app/transcribe", {
             method: "POST",
             body: formData,
           });
