@@ -24,54 +24,69 @@ export default function VoiceScheduler() {
   };
 
   const startRecording = async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorderRef.current = new MediaRecorder(stream);
-    audioChunksRef.current = [];
-
-    mediaRecorderRef.current.ondataavailable = (e) => {
-      audioChunksRef.current.push(e.data);
-    };
-
-    mediaRecorderRef.current.onstop = async () => {
-      const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-    
-      const formData = new FormData();
-      formData.append("file", audioBlob, "audio.webm");
-    
-      try {
-        const res = await fetch("http://localhost:3000/transcribe", {
-          method: "POST",
-          body: formData,
-        });
-    
-        const data = await res.json();
-    
-        const start = new Date(`${data.date}T${data.time}`);
-        const end = new Date(start.getTime() + 30 * 60 * 1000); // 30 minutes
-    
-        setEvents((prev) => [
-          ...prev,
-          {
-            title: `${data.purpose} with ${data.person}`,
-            start,
-            end,
-          },
-        ]);
-    
-        setTranscript(data.transcript);
-      } catch (err) {
-        console.error("Error uploading audio:", err);
-      }
-    };
-
-    mediaRecorderRef.current.start();
-    setRecording(true);
+    console.log("Requesting microphone access...");
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log("Microphone access granted");
+  
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+  
+      mediaRecorderRef.current.ondataavailable = (e) => {
+        console.log("Audio chunk received");
+        audioChunksRef.current.push(e.data);
+      };
+  
+      mediaRecorderRef.current.onstop = async () => {
+        console.log("Recording stopped, preparing to send audio");
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+  
+        const formData = new FormData();
+        formData.append("file", audioBlob, "audio.webm");
+        console.log("Sending audio to backend...");
+  
+        try {
+          const res = await fetch("http://21b0-35-185-196-223.ngrok-free.app/transcribe", {
+            method: "POST",
+            body: formData,
+          });
+  
+          const data = await res.json();
+          console.log("Received response from backend:", data);
+  
+          const start = new Date(`${data.date}T${data.time}`);
+          const end = new Date(start.getTime() + 30 * 60 * 1000);
+  
+          setEvents((prev) => [
+            ...prev,
+            {
+              title: `${data.purpose} with ${data.person}`,
+              start,
+              end,
+            },
+          ]);
+  
+          setTranscript(data.transcript);
+        } catch (err) {
+          console.error("Error uploading audio:", err);
+        }
+      };
+  
+      mediaRecorderRef.current.start();
+      console.log("Recording started");
+      setRecording(true);
+    } catch (err) {
+      console.error("Microphone access denied:", err);
+    }
   };
 
   const stopRecording = () => {
+    console.log("Stopping recording...");
     mediaRecorderRef.current.stop();
     setRecording(false);
   };
+
+  console.log("Rendering component - recording:", recording, "transcript:", transcript);
 
   return (
     <div style={{ padding: "2rem", fontFamily: "Arial, sans-serif", background: "linear-gradient(to right, #e0f7fa, #e1bee7)", minHeight: "100vh" }}>
