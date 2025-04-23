@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
@@ -23,6 +23,38 @@ export default function VoiceScheduler() {
     setDate(newDate);
   };
 
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const res = await fetch("https://cab7-34-142-141-210.ngrok-free.app/events");
+        const data = await res.json();
+  
+        console.log("Loaded events from backend:", data);
+  
+        const parsedEvents = [];
+  
+        for (const [date, items] of Object.entries(data)) {
+          for (const item of items) {
+            const start = new Date(`${date}T${item.time}`);
+            const end = new Date(start.getTime() + 30 * 60 * 1000);
+  
+            parsedEvents.push({
+              title: `${item.purpose} with ${item.person}`,
+              start,
+              end
+            });
+          }
+        }
+  
+        setEvents(parsedEvents);
+      } catch (err) {
+        console.error("Failed to fetch events:", err);
+      }
+    };
+  
+    fetchEvents();
+  }, []);
+
   const startRecording = async () => {
     console.log("Requesting microphone access...");
     try {
@@ -46,7 +78,7 @@ export default function VoiceScheduler() {
         console.log("Sending audio to backend...");
   
         try {
-          const res = await fetch("http://21b0-35-185-196-223.ngrok-free.app/transcribe", {
+          const res = await fetch("https://cab7-34-142-141-210.ngrok-free.app/transcribe", {
             method: "POST",
             body: formData,
           });
