@@ -5,19 +5,35 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 
 const localizer = momentLocalizer(moment);
 
+const spinnerStyle = {
+  width: "30px",
+  height: "30px",
+  border: "4px solid #ccc",
+  borderTop: "4px solid #6a1b9a",
+  borderRadius: "50%",
+  animation: "spin 1s linear infinite",
+  margin: "0 auto 1rem",
+};
+
+const spinnerKeyframes = `
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}`;
+
 export default function VoiceScheduler() {
   const [events, setEvents] = useState([]);
   const [transcript, setTranscript] = useState("");
+  const [loading, setLoading] = useState(false);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const [recording, setRecording] = useState(false);
   const [view, setView] = useState("month");
+  const [date, setDate] = useState(new Date());
 
   const handleViewChange = (newView) => {
     setView(newView);
   };
-
-  const [date, setDate] = useState(new Date());
 
   const handleNavigate = (newDate) => {
     setDate(newDate);
@@ -28,14 +44,22 @@ export default function VoiceScheduler() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       console.log("Microphone access granted");
+<<<<<<< Updated upstream
   
       mediaRecorderRef.current = new MediaRecorder(stream);
       audioChunksRef.current = [];
   
+=======
+
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+>>>>>>> Stashed changes
       mediaRecorderRef.current.ondataavailable = (e) => {
         console.log("Audio chunk received");
         audioChunksRef.current.push(e.data);
       };
+<<<<<<< Updated upstream
   
       mediaRecorderRef.current.onstop = async () => {
         console.log("Recording stopped, preparing to send audio");
@@ -45,11 +69,25 @@ export default function VoiceScheduler() {
         formData.append("file", audioBlob, "audio.webm");
         console.log("Sending audio to backend...");
   
+=======
+
+      mediaRecorderRef.current.onstop = async () => {
+        console.log("Recording stopped, preparing to send audio");
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+
+        const formData = new FormData();
+        formData.append("file", audioBlob, "audio.webm");
+        console.log("Sending audio to backend...");
+
+        setLoading(true);
+
+>>>>>>> Stashed changes
         try {
           const res = await fetch("http://21b0-35-185-196-223.ngrok-free.app/transcribe", {
             method: "POST",
             body: formData,
           });
+<<<<<<< Updated upstream
   
           const data = await res.json();
           console.log("Received response from backend:", data);
@@ -57,6 +95,15 @@ export default function VoiceScheduler() {
           const start = new Date(`${data.date}T${data.time}`);
           const end = new Date(start.getTime() + 30 * 60 * 1000);
   
+=======
+
+          const data = await res.json();
+          console.log("Received response from backend:", data);
+
+          const start = new Date(`${data.date}T${data.time}`);
+          const end = new Date(start.getTime() + 30 * 60 * 1000);
+
+>>>>>>> Stashed changes
           setEvents((prev) => [
             ...prev,
             {
@@ -65,13 +112,24 @@ export default function VoiceScheduler() {
               end,
             },
           ]);
+<<<<<<< Updated upstream
   
+=======
+
+>>>>>>> Stashed changes
           setTranscript(data.transcript);
         } catch (err) {
           console.error("Error uploading audio:", err);
         }
+<<<<<<< Updated upstream
       };
   
+=======
+
+        setLoading(false);
+      };
+
+>>>>>>> Stashed changes
       mediaRecorderRef.current.start();
       console.log("Recording started");
       setRecording(true);
@@ -90,6 +148,8 @@ export default function VoiceScheduler() {
 
   return (
     <div style={{ padding: "2rem", fontFamily: "Arial, sans-serif", background: "linear-gradient(to right, #e0f7fa, #e1bee7)", minHeight: "100vh" }}>
+      <style>{spinnerKeyframes}</style>
+
       <h2 style={{ fontSize: "2rem", color: "#6a1b9a", marginBottom: "1rem" }}>🎤 Voice Scheduler</h2>
 
       <button
@@ -108,6 +168,15 @@ export default function VoiceScheduler() {
       >
         {recording ? "🛑 Stop Recording" : "🎙️ Start Speaking"}
       </button>
+
+      {loading && (
+        <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+          <div style={spinnerStyle}></div>
+          <p style={{ fontStyle: "italic", color: "#6a1b9a", fontWeight: "bold" }}>
+            Transcribing your input... please wait
+          </p>
+        </div>
+      )}
 
       <p style={{ fontStyle: "italic", color: "#4a148c", marginBottom: "2rem" }}>
         {transcript && `You said: "${transcript}"`}
