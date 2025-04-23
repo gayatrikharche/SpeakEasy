@@ -1,20 +1,27 @@
+from utils import *
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from utils import *
-import os
+from flask_ngrok import run_with_ngrok
 import whisper
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
-from transformers import BitsAndBytesConfig
+import re, json, os
+from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from dotenv import load_dotenv
 from huggingface_hub.hf_api import HfFolder
+from pyngrok import ngrok
 
 load_dotenv()
 hf_token = os.getenv("HF_TOKEN")
+ng_token = os.getenv("NG_TOKEN")
 HfFolder.save_token(hf_token)
+ngrok.set_auth_token(ng_token)
+
+public_url = ngrok.connect(5000)
+print("Public URL:", public_url)
 
 config = get_config()
 app = Flask(__name__)
 CORS(app)
+run_with_ngrok(app)
 
 audio_model = whisper.load_model(config["audio"]["model_name"])
 llm_model_name = config["llm"]["model_name"]
