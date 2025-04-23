@@ -44,32 +44,14 @@ export default function VoiceScheduler() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       console.log("Microphone access granted");
-<<<<<<< Updated upstream
-  
-      mediaRecorderRef.current = new MediaRecorder(stream);
-      audioChunksRef.current = [];
-  
-=======
 
       mediaRecorderRef.current = new MediaRecorder(stream);
       audioChunksRef.current = [];
 
->>>>>>> Stashed changes
       mediaRecorderRef.current.ondataavailable = (e) => {
         console.log("Audio chunk received");
         audioChunksRef.current.push(e.data);
       };
-<<<<<<< Updated upstream
-  
-      mediaRecorderRef.current.onstop = async () => {
-        console.log("Recording stopped, preparing to send audio");
-        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-  
-        const formData = new FormData();
-        formData.append("file", audioBlob, "audio.webm");
-        console.log("Sending audio to backend...");
-  
-=======
 
       mediaRecorderRef.current.onstop = async () => {
         console.log("Recording stopped, preparing to send audio");
@@ -81,21 +63,11 @@ export default function VoiceScheduler() {
 
         setLoading(true);
 
->>>>>>> Stashed changes
         try {
           const res = await fetch("http://21b0-35-185-196-223.ngrok-free.app/transcribe", {
             method: "POST",
             body: formData,
           });
-<<<<<<< Updated upstream
-  
-          const data = await res.json();
-          console.log("Received response from backend:", data);
-  
-          const start = new Date(`${data.date}T${data.time}`);
-          const end = new Date(start.getTime() + 30 * 60 * 1000);
-  
-=======
 
           const data = await res.json();
           console.log("Received response from backend:", data);
@@ -103,7 +75,6 @@ export default function VoiceScheduler() {
           const start = new Date(`${data.date}T${data.time}`);
           const end = new Date(start.getTime() + 30 * 60 * 1000);
 
->>>>>>> Stashed changes
           setEvents((prev) => [
             ...prev,
             {
@@ -112,24 +83,15 @@ export default function VoiceScheduler() {
               end,
             },
           ]);
-<<<<<<< Updated upstream
-  
-=======
 
->>>>>>> Stashed changes
           setTranscript(data.transcript);
         } catch (err) {
           console.error("Error uploading audio:", err);
         }
-<<<<<<< Updated upstream
-      };
-  
-=======
 
         setLoading(false);
       };
 
->>>>>>> Stashed changes
       mediaRecorderRef.current.start();
       console.log("Recording started");
       setRecording(true);
