@@ -6,10 +6,10 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 const localizer = momentLocalizer(moment);
 
 const spinnerStyle = {
-  width: "30px",
-  height: "30px",
-  border: "4px solid #ccc",
-  borderTop: "4px solid #6a1b9a",
+  width: "40px",
+  height: "40px",
+  border: "5px solid #ccc",
+  borderTop: "5px solid #6a1b9a",
   borderRadius: "50%",
   animation: "spin 1s linear infinite",
   margin: "0 auto 1rem",
@@ -19,6 +19,11 @@ const spinnerKeyframes = `
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeInEvent {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }`;
 
 export default function VoiceScheduler() {
@@ -43,68 +48,49 @@ export default function VoiceScheduler() {
     const fetchEvents = async () => {
       try {
         const res = await fetch("https://7580-34-125-16-213.ngrok-free.app/events");
-        console.log("Loaded events from backend:", res);
         const data = await res.json();
-        
-        // console.log("Loaded events from backend:", data);
-  
         const parsedEvents = [];
-  
+
         for (const [date, items] of Object.entries(data)) {
           for (const item of items) {
             const startString = `${date}T${item.time}`;
             const start = new Date(startString);
             const end = new Date(start.getTime() + 30 * 60 * 1000);
-        
-            console.log("Parsing event:", {
-              date,
-              time: item.time,
-              startString,
-              start,
-              valid: !isNaN(start.getTime())
-            });
-        
+
             if (!isNaN(start.getTime())) {
               parsedEvents.push({
                 title: `${item.purpose} with ${item.person}`,
                 start,
                 end,
+                className: "fade-in-event"
               });
             }
           }
         }
-  
+
         setEvents(parsedEvents);
       } catch (err) {
         console.error("Failed to fetch events:", err);
       }
     };
-  
+
     fetchEvents();
   }, []);
 
   const startRecording = async () => {
-    console.log("Requesting microphone access...");
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      console.log("Microphone access granted");
-
       mediaRecorderRef.current = new MediaRecorder(stream);
       audioChunksRef.current = [];
 
       mediaRecorderRef.current.ondataavailable = (e) => {
-        console.log("Audio chunk received");
         audioChunksRef.current.push(e.data);
       };
 
       mediaRecorderRef.current.onstop = async () => {
-        console.log("Recording stopped, preparing to send audio");
         const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-
         const formData = new FormData();
         formData.append("file", audioBlob, "audio.webm");
-        console.log("Sending audio to backend...");
-
         setLoading(true);
 
         try {
@@ -114,8 +100,6 @@ export default function VoiceScheduler() {
           });
 
           const data = await res.json();
-          console.log("Received response from backend:", data);
-
           const start = new Date(`${data.date}T${data.time}`);
           const end = new Date(start.getTime() + 30 * 60 * 1000);
 
@@ -125,6 +109,7 @@ export default function VoiceScheduler() {
               title: `${data.purpose} with ${data.person}`,
               start,
               end,
+              className: "fade-in-event"
             },
           ]);
 
@@ -137,7 +122,6 @@ export default function VoiceScheduler() {
       };
 
       mediaRecorderRef.current.start();
-      console.log("Recording started");
       setRecording(true);
     } catch (err) {
       console.error("Microphone access denied:", err);
@@ -145,18 +129,22 @@ export default function VoiceScheduler() {
   };
 
   const stopRecording = () => {
-    console.log("Stopping recording...");
     mediaRecorderRef.current.stop();
     setRecording(false);
   };
 
-  console.log("Rendering component - recording:", recording, "transcript:", transcript);
-
   return (
-    <div style={{ padding: "2rem", fontFamily: "Arial, sans-serif", background: "linear-gradient(to right, #e0f7fa, #e1bee7)", minHeight: "100vh" }}>
+    <div style={{ padding: "2rem", fontFamily: "Poppins, sans-serif", background: "#1e1e2f", color: "#f0f0f0", minHeight: "100vh" }}>
       <style>{spinnerKeyframes}</style>
 
-      <h2 style={{ fontSize: "2rem", color: "#6a1b9a", marginBottom: "1rem" }}>🎤 Voice Scheduler</h2>
+      <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
+        <img src="https://cdn-icons-png.flaticon.com/512/3405/3405822.png" alt="SpeakEasy Logo" width="40" height="40" />
+        <h1 style={{ fontSize: "2.5rem", color: "#bb86fc", margin: 0 }}>SpeakEasy</h1>
+      </div>
+
+      <p style={{ marginBottom: "2rem", fontSize: "1.1rem", color: "#ccc" }}>
+        SpeakEasy is an AI-powered voice scheduler that lets you speak your appointments and see them automatically appear on your calendar using Whisper + LLaMA.
+      </p>
 
       <button
         onClick={recording ? stopRecording : startRecording}
@@ -164,12 +152,13 @@ export default function VoiceScheduler() {
           padding: "0.75rem 1.5rem",
           fontSize: "1rem",
           borderRadius: "30px",
-          backgroundColor: recording ? "#d32f2f" : "#7b1fa2",
+          backgroundColor: recording ? "#cf6679" : "#bb86fc",
           color: "white",
           border: "none",
           cursor: "pointer",
-          transition: "0.3s ease",
-          marginBottom: "1rem",
+          transition: "all 0.3s ease",
+          marginBottom: "1.5rem",
+          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.4)",
         }}
       >
         {recording ? "🛑 Stop Recording" : "🎙️ Start Speaking"}
@@ -178,23 +167,23 @@ export default function VoiceScheduler() {
       {loading && (
         <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
           <div style={spinnerStyle}></div>
-          <p style={{ fontStyle: "italic", color: "#6a1b9a", fontWeight: "bold" }}>
+          <p style={{ fontStyle: "italic", color: "#bb86fc", fontWeight: "bold" }}>
             Transcribing your input... please wait
           </p>
         </div>
       )}
 
-      <p style={{ fontStyle: "italic", color: "#4a148c", marginBottom: "2rem" }}>
+      <p style={{ fontStyle: "italic", color: "#9e9e9e", marginBottom: "2rem" }}>
         {transcript && `You said: "${transcript}"`}
       </p>
 
-      <div style={{ height: "500px", backgroundColor: "white", borderRadius: "20px", padding: "1rem", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)" }}>
+      <div style={{ height: "500px", backgroundColor: "#2e2e3e", borderRadius: "20px", padding: "1rem", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.5)" }}>
         <Calendar
           localizer={localizer}
           events={events}
           startAccessor="start"
           endAccessor="end"
-          style={{ height: "100%" }}
+          style={{ height: "100%", color: "#fff" }}
           views={["month", "week", "day"]}
           view={view}
           onView={handleViewChange}
