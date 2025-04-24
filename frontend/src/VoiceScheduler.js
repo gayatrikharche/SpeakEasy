@@ -8,8 +8,8 @@ const localizer = momentLocalizer(moment);
 const spinnerStyle = {
   width: "40px",
   height: "40px",
-  border: "5px solid #ccc",
-  borderTop: "5px solid #6a1b9a",
+  border: "5px solid #d1c4e9",
+  borderTop: "5px solid #7e57c2",
   borderRadius: "50%",
   animation: "spin 1s linear infinite",
   margin: "0 auto 1rem",
@@ -24,6 +24,18 @@ const spinnerKeyframes = `
 @keyframes fadeInEvent {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+  .calendar-container {
+    height: 400px !important;
+    padding: 0.5rem !important;
+  }
+  .header-container {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.5rem !important;
+  }
 }`;
 
 export default function VoiceScheduler() {
@@ -44,6 +56,14 @@ export default function VoiceScheduler() {
     setDate(newDate);
   };
 
+  const getIcon = (title) => {
+    const lower = title.toLowerCase();
+    if (lower.includes("doctor") || lower.includes("appointment")) return "🩺";
+    if (lower.includes("meeting")) return "📅";
+    if (lower.includes("call")) return "📞";
+    return "📝";
+  };
+
   useEffect(() => {
     const fetchEvents = async () => {
       try {
@@ -59,7 +79,7 @@ export default function VoiceScheduler() {
 
             if (!isNaN(start.getTime())) {
               parsedEvents.push({
-                title: `${item.purpose} with ${item.person}`,
+                title: `${getIcon(item.purpose)} ${item.purpose} with ${item.person}`,
                 start,
                 end,
                 className: "fade-in-event"
@@ -106,7 +126,7 @@ export default function VoiceScheduler() {
           setEvents((prev) => [
             ...prev,
             {
-              title: `${data.purpose} with ${data.person}`,
+              title: `${getIcon(data.purpose)} ${data.purpose} with ${data.person}`,
               start,
               end,
               className: "fade-in-event"
@@ -134,15 +154,15 @@ export default function VoiceScheduler() {
   };
 
   return (
-    <div style={{ padding: "2rem", fontFamily: "Poppins, sans-serif", background: "#1e1e2f", color: "#f0f0f0", minHeight: "100vh" }}>
+    <div style={{ padding: "2rem", fontFamily: "Poppins, sans-serif", background: "linear-gradient(to right, #5fb0a9, #b28bc4)" , minHeight: "100vh" }}>
       <style>{spinnerKeyframes}</style>
 
-      <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
+      <div className="header-container" style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
         <img src="https://cdn-icons-png.flaticon.com/512/3405/3405822.png" alt="SpeakEasy Logo" width="40" height="40" />
-        <h1 style={{ fontSize: "2.5rem", color: "#bb86fc", margin: 0 }}>SpeakEasy</h1>
+        <h1 style={{ fontSize: "2.5rem", color: "black", margin: 0 }}>SpeakEasy</h1>
       </div>
 
-      <p style={{ marginBottom: "2rem", fontSize: "1.1rem", color: "#ccc" }}>
+      <p style={{ marginBottom: "2rem", fontSize: "1.1rem",  textAlign: "center", color: "#2c2c2c" }}>
         SpeakEasy is an AI-powered voice scheduler that lets you speak your appointments and see them automatically appear on your calendar using Whisper + LLaMA.
       </p>
 
@@ -152,13 +172,13 @@ export default function VoiceScheduler() {
           padding: "0.75rem 1.5rem",
           fontSize: "1rem",
           borderRadius: "30px",
-          backgroundColor: recording ? "#cf6679" : "#bb86fc",
+          backgroundColor: recording ? "#e57373" : "#9575cd",
           color: "white",
           border: "none",
           cursor: "pointer",
           transition: "all 0.3s ease",
           marginBottom: "1.5rem",
-          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.4)",
+          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
         }}
       >
         {recording ? "🛑 Stop Recording" : "🎙️ Start Speaking"}
@@ -167,23 +187,23 @@ export default function VoiceScheduler() {
       {loading && (
         <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
           <div style={spinnerStyle}></div>
-          <p style={{ fontStyle: "italic", color: "#bb86fc", fontWeight: "bold" }}>
+          <p style={{ fontStyle: "italic", color: "#7e57c2", fontWeight: "bold" }}>
             Transcribing your input... please wait
           </p>
         </div>
       )}
 
-      <p style={{ fontStyle: "italic", color: "#9e9e9e", marginBottom: "2rem" }}>
+      <p style={{ fontStyle: "italic", color: "#6d6875", marginBottom: "2rem" }}>
         {transcript && `You said: "${transcript}"`}
       </p>
 
-      <div style={{ height: "500px", backgroundColor: "#2e2e3e", borderRadius: "20px", padding: "1rem", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.5)" }}>
+      <div className="calendar-container" style={{ height: "500px", backgroundColor: "#fff0f6", borderRadius: "20px", padding: "1rem", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)" }}>
         <Calendar
           localizer={localizer}
           events={events}
           startAccessor="start"
           endAccessor="end"
-          style={{ height: "100%", color: "#fff" }}
+          style={{ height: "100%", color: "#3c096c" }}
           views={["month", "week", "day"]}
           view={view}
           onView={handleViewChange}
