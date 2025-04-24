@@ -2,6 +2,8 @@ import React, { useRef, useState, useEffect } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import speakeasy_logo from "./assets/speakeasy_logo.png"; 
+
 
 const localizer = momentLocalizer(moment);
 
@@ -157,9 +159,9 @@ export default function VoiceScheduler() {
     <div style={{ padding: "2rem", fontFamily: "Poppins, sans-serif", background: "linear-gradient(to right, #5fb0a9, #b28bc4)" , minHeight: "100vh" }}>
       <style>{spinnerKeyframes}</style>
 
-      <div className="header-container" style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
-        <img src="https://cdn-icons-png.flaticon.com/512/3405/3405822.png" alt="SpeakEasy Logo" width="40" height="40" />
-        <h1 style={{ fontSize: "2.5rem", color: "black", margin: 0 }}>SpeakEasy</h1>
+    <div className="header-container" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", marginBottom: "1rem" }}>
+    <img src={speakeasy_logo} alt="SpeakEasy Logo" width="70" height="70" />
+    <h1 style={{ fontSize: "2.5rem", color: "black", margin: 0 }}>SpeakEasy</h1>
       </div>
 
       <p style={{ marginBottom: "2rem", fontSize: "1.1rem",  textAlign: "center", color: "#2c2c2c" }}>
